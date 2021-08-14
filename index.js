@@ -4,10 +4,10 @@ import dotenv from "dotenv";
 import CoursesDAO from "./dao/coursesDAO.js";
 import ReviewsDAO from "./dao/reviewsDAO.js";
 dotenv.config();
-//const MongoClient = mongodb.MongoClient;
+const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 5000;
 //now we'll connect to the database
-/* MongoClient.connect(process.env.WisCourse_DB_URI, {
+MongoClient.connect(process.env.WisCourse_DB_URI, {
   maxPoolSize: 50,
   wtimeoutMS: 2500, //ms
   useNewUrlParser: true,
@@ -27,4 +27,4 @@ const port = process.env.PORT || 5000;
     app.listen(port, () => {
       console.log(`web server listening on port ${port}`);
     });
-  }); */
+  });
