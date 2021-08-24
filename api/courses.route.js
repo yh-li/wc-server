@@ -3,7 +3,7 @@ import CoursesCtrl from "./courses.controller.js";
 import ReviewsCtrl from "./reviews.controller.js";
 const router = express.Router();
 router.route("/").get(CoursesCtrl.apiGetCourses);
-router.route("/ccc").get(CoursesCtrl.apiGetCourses);
+router.route("/create").post(CoursesCtrl.apiCreateCourse);
 router.route("/id/:id").get(CoursesCtrl.apiGetCourseById);
 router.route("/deps").get(CoursesCtrl.apiGetCourseDeps);
 router

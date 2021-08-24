@@ -1,5 +1,21 @@
 import CoursesDAO from "../dao/coursesDAO.js";
 export default class CouresesController {
+  static async apiCreateCourse(req, res, next) {
+    console.log("New Course Request Received from Backend");
+    try {
+      const courseNo = req.body.number;
+      const courseName = req.body.courseName;
+      const courseDep = req.body.dep;
+      const CourseResponse = await CoursesDAO.addCourse(
+        courseNo,
+        courseName,
+        courseDep
+      );
+      res.json({ status: "success" });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
   static async apiGetCourses(req, res, next) {
     const coursesPerPage = req.query.coursesPerPage
       ? parseInt(req.query.query.couresePerPage, 10)

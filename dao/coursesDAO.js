@@ -112,4 +112,17 @@ export default class CoursesDAO {
       return deps;
     }
   }
+  static async addCourse(courseNo, courseDep, courseName) {
+    try {
+      const courseDoc = {
+        name: courseName,
+        number: courseNo,
+        dep: courseDep,
+      };
+      return await courses.insertOne(courseDoc);
+    } catch (e) {
+      console.error(`Unable to create course: ${e}`);
+      return { error: e };
+    }
+  }
 }
