@@ -7,7 +7,7 @@ const app = express();
 //middle ware
 app.use(cors());
 app.use(express.json()); //like body parser, server can receive json in the body of request
-
+//otherwise txt won't be parsed to json
 app.use("/api/v1/courses", courses);
 app.use("*", (req, res) => res.status(404).json({ error: "not found" }));
 

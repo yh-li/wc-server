@@ -3,15 +3,17 @@ import mongodb from "mongodb";
 import dotenv from "dotenv";
 import CoursesDAO from "./dao/coursesDAO.js";
 import ReviewsDAO from "./dao/reviewsDAO.js";
+import mongoose from "mongoose";
 dotenv.config();
 const MongoClient = mongodb.MongoClient;
 const port = process.env.PORT || 5000;
 //now we'll connect to the database
-MongoClient.connect(process.env.WisCourse_DB_URI, {
-  maxPoolSize: 50,
-  wtimeoutMS: 2500, //ms
-  useNewUrlParser: true,
-})
+mongoose
+  .connect(process.env.WisCourse_DB_URI, {
+    maxPoolSize: 50,
+    wtimeoutMS: 2500, //ms
+    useNewUrlParser: true,
+  })
   .catch((err) => {
     console.error(err.stack);
     process.exit(1);
