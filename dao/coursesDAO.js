@@ -112,7 +112,7 @@ export default class CoursesDAO {
       return deps;
     }
   }
-  static async addCourse(courseNo, courseDep, courseName) {
+  static async addCourse(courseNo, courseName, courseDep) {
     try {
       const courseDoc = {
         name: courseName,
