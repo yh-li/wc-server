@@ -1,45 +1,47 @@
-import ReviewsDAO from "../dao/reviewsDAO.js";
+import Review from "../models/reviewModel.js";
+import mongoose from "mongoose";
+const ObjectId = mongoose.Types.ObjectId;
 export default class ReviewsController {
   static async apiPostReview(req, res, next) {
     try {
-      const courseId = req.body.course_id;
-      const review = req.body.text;
-      const userInfo = {
-        name: req.body.name,
-        _id: req.body.user_id,
-      };
+      const { course_id, text } = req.body;
+      const user_id = req.user;
       const date = new Date();
-      const ReviewResponse = await ReviewsDAO.addReview(
-        courseId,
-        userInfo,
-        review,
-        date
-      );
-      res.json({ status: "success" });
+      //see if there was a review from this user to this course
+      const oldReview = Review.find({
+        course_id: ObjectId(course_id),
+        user_id: ObjectId(user_id),
+      });
+      if (oldReview)
+        return res
+          .status(401)
+          .json({
+            errorMessage:
+              "There was an old review from the current user for the current course.",
+          });
+      const newReview = new Review({
+        course_id: ObjectId(course_id),
+        user_id: ObjectId(user_id),
+        text: text,
+        create_date: date,
+      });
+      const savedReview = await newReview.save();
+      res.json(savedReview);
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
   }
   static async apiUpdateReview(req, res, next) {
     try {
-      const reviewId = req.body.review_id;
-      const text = req.body.text;
-      const date = new Date();
-      const reviewResponse = await ReviewsDAO.updateReview(
-        reviewId,
-        req.body.user_id,
-        text,
-        date
+      const review_id = req.body.review_id;
+      const theReview = await Review.findById(
+        mongoose.Types.ObjectId(review_id)
       );
-      var { error } = reviewResponse;
-      if (error) {
-        res.status(400).json({ error });
-      }
-      if (reviewResponse.modifiedCount === 0) {
-        throw new Error(
-          "Unable to update review - user may not be original poster"
-        );
-      }
+      if (!theReview || !ObjectId(req.user).equals(theReview.user_id))
+        return res.status(401).json({ errorMessage: "Unauthorized" });
+      theReview.text = req.body.newText;
+      theReview.create_date = new Date();
+      theReview.save();
       res.json({ status: "success" });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -47,14 +49,14 @@ export default class ReviewsController {
   }
   static async apiDeleteReview(req, res, next) {
     try {
-      const reviewId = req.query.id;
-      const userId = req.body.user_id; //usually in delete request
-      //there should not be any parameters in the body
-      //here we would like to check if the user is the original poster
-      //but it should be more complex than providing the user id in the delete request
+      const review_id = req.body.review_id;
+      const theReview = await Review.findById(
+        mongoose.Types.ObjectId(review_id)
+      );
+      if (!theReview || !ObjectId(req.user).equals(theReview.user_id))
+        return res.status(401).json({ errorMessage: "Unauthorized" });
       console.log("Delete Request Received");
-      console.log(reviewId);
-      const reviewResponse = await ReviewsDAO.deleteReview(reviewId, userId);
+      await theReview.remove();
       res.json({ status: "success" });
     } catch (e) {
       res.status(500).json({ error: e.message });

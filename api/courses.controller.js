@@ -1,6 +1,6 @@
-import CoursesDAO from "../dao/coursesDAO.js";
+import Course from "../models/courseModel.js";
 export default class CouresesController {
-  static async apiCreateCourse(req, res, next) {
+  /*   static async apiCreateCourse(req, res, next) {
     console.log("New Course Request Received from Backend");
     try {
       const courseNo = req.body.number;
@@ -15,7 +15,7 @@ export default class CouresesController {
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
-  }
+  } */
   static async apiGetCourses(req, res, next) {
     const coursesPerPage = req.query.coursesPerPage
       ? parseInt(req.query.query.couresePerPage, 10)
@@ -24,13 +24,16 @@ export default class CouresesController {
     let filters = {};
     if (req.query.dep) {
       filters.dep = req.query.dep;
-    } else if (req.query.no) {
-      filters.no = req.query.no;
-    } else if (req.query.name) {
-      filters.name = req.query.name;
+    }
+    if (req.query.no) {
+      filters.number = " " + req.query.no;
+    }
+    if (req.query.name) {
+      filters["$text"] = { $search: req.query.name };
     }
     console.log(filters);
-    const { coursesList, totalNumCourses } = await CoursesDAO.getCourses({
+    const response = await Course.find(filters);
+    /*    const { coursesList, totalNumCourses } = await CoursesDAO.getCourses({
       filters,
       page,
       coursesPerPage,
@@ -41,13 +44,13 @@ export default class CouresesController {
       filters: filters,
       entries_per_page: coursesPerPage,
       total_results: totalNumCourses,
-    };
+    }; */
     res.json(response);
   }
   static async apiGetCourseById(req, res, next) {
     try {
       let id = req.params.id || {};
-      let course = await CoursesDAO.getCourseById(id);
+      let course = await Course.find({ number: " " + id });
       if (!course) {
         res.status(404).json({ error: "Not found" });
         return;
@@ -60,7 +63,7 @@ export default class CouresesController {
   }
   static async apiGetCourseDeps(req, res, next) {
     try {
-      let deps = await CoursesDAO.getDeps();
+      let deps = await Course.distinct("dep");
       res.json(deps);
     } catch (e) {
       console.log(`api, ${e}`);
