@@ -1,4 +1,7 @@
 import Course from "../models/courseModel.js";
+import mongoose from "mongoose";
+import Review from "../models/reviewModel.js";
+const ObjectId = mongoose.Types.ObjectId;
 export default class CouresesController {
   /*   static async apiCreateCourse(req, res, next) {
     console.log("New Course Request Received from Backend");
@@ -32,7 +35,9 @@ export default class CouresesController {
       filters["$text"] = { $search: req.query.name };
     }
     console.log(filters);
-    const response = await Course.find(filters);
+    const response = await Course.find(filters)
+      .skip(coursesPerPage * page)
+      .limit(coursesPerPage);
     /*    const { coursesList, totalNumCourses } = await CoursesDAO.getCourses({
       filters,
       page,
@@ -50,18 +55,32 @@ export default class CouresesController {
   static async apiGetCourseById(req, res, next) {
     try {
       let id = req.params.id || {};
-      let course = await Course.find({ number: " " + id });
+      let course = await Course.findById(ObjectId(id));
       if (!course) {
         res.status(404).json({ error: "Not found" });
         return;
       }
-      res.json(course);
+      const reviewsPerPage = req.query.coursesPerPage
+        ? parseInt(req.query.query.couresePerPage, 10)
+        : 20;
+      const page = req.query.page ? parseInt(req.query.page, 10) : 0;
+      //get reviews
+      let reviews = await Review.find({ course_id: ObjectId(id) })
+        .skip(reviewsPerPage * page)
+        .limit(reviewsPerPage);
+      course.reviews = reviews;
+      console.log(reviews);
+      res.json({ course: course, reviews: reviews });
     } catch (e) {
       console.log(`api, ${e}`);
       res.status(500).json({ error: e });
     }
   }
   static async apiGetCourseDeps(req, res, next) {
+    //const depsPerPage = req.query.coursesPerPage
+    //  ? parseInt(req.query.query.couresePerPage, 10)
+    //  : 40;
+    //const page = req.query.page ? parseInt(req.query.page, 10) : 0;
     try {
       let deps = await Course.distinct("dep");
       res.json(deps);

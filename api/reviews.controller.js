@@ -13,12 +13,10 @@ export default class ReviewsController {
         user_id: ObjectId(user_id),
       });
       if (oldReview)
-        return res
-          .status(401)
-          .json({
-            errorMessage:
-              "There was an old review from the current user for the current course.",
-          });
+        return res.status(401).json({
+          errorMessage:
+            "There was an old review from the current user for the current course.",
+        });
       const newReview = new Review({
         course_id: ObjectId(course_id),
         user_id: ObjectId(user_id),
@@ -37,6 +35,8 @@ export default class ReviewsController {
       const theReview = await Review.findById(
         mongoose.Types.ObjectId(review_id)
       );
+      console.log("Current user id is ", ObjectId(req.user));
+      console.log("The review id is ", ObjectId(theReview.user_id));
       if (!theReview || !ObjectId(req.user).equals(theReview.user_id))
         return res.status(401).json({ errorMessage: "Unauthorized" });
       theReview.text = req.body.newText;

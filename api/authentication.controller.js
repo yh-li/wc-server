@@ -1,12 +1,13 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+const expiresInHours = 1;
 export default class AuthCtrl {
   static async Register(req, res, next) {
     try {
-      const { email, password, confirmPassword } = req.body;
+      const { email, password, confirmPassword, username } = req.body;
       //do validation
-      if (!email || !password || !confirmPassword)
+      if (!email || !password || !confirmPassword || !username)
         return res
           .status(400)
           .json({ errorMessage: "Please enter the required fields." });
@@ -17,19 +18,22 @@ export default class AuthCtrl {
       if (password !== confirmPassword)
         return res.status(400).json({ errorMessage: "Passwords don't match." });
       //one email can only be connected to at most 1 account
-      const existingUser = await User.findOne({ email: email }); //in short we can say email here
+      const existingUser = await User.findOne({
+        $or: [{ email: email }, { username: username }],
+      }); //in short we can say email here
       if (existingUser) {
-        return res
-          .status(400)
-          .json({ errorMessage: "An account with this email already exists." });
+        return res.status(400).json({
+          errorMessage:
+            "An account with this email or username already exists.",
+        });
       }
-      console.log(existingUser);
       //hash the password
       const salt = await bcrypt.genSalt();
       const passwordHash = await bcrypt.hash(password, salt);
       const newUser = new User({
         email,
         passwordHash,
+        username,
       });
       const savedUser = await newUser.save();
       //log the user in
@@ -41,11 +45,17 @@ export default class AuthCtrl {
         },
         process.env.JWT_SECRET
       );
-      console.log(token);
+      var expireTime = new Date();
+      expireTime.setTime(expireTime.getTime() + expiresInHours * 3600 * 1000);
       //send token in a http-only cookie
       res
         .cookie("token", token, {
           httpOnly: true,
+          expires: expireTime,
+        })
+        .cookie("username", savedUser.username, {
+          httpOnly: true,
+          expires: expireTime,
         })
         .send(); //cookie's name is token
     } catch (err) {
@@ -83,9 +93,16 @@ export default class AuthCtrl {
         process.env.JWT_SECRET
       );
       //send token in a http-only cookie
+      var expireTime = new Date();
+      expireTime.setTime(expireTime.getTime() + expiresInHours * 3600 * 1000);
       res
         .cookie("token", token, {
           httpOnly: true,
+          expires: expireTime,
+        })
+        .cookie("username", existingUser.username, {
+          httpOnly: true,
+          expires: expireTime,
         })
         .send(); //cookie's name is token
     } catch (err) {
@@ -99,6 +116,10 @@ export default class AuthCtrl {
         httpOnly: true,
         expires: new Date(0),
         //completely removes the cookie
+      })
+      .cookie("user_id", "", {
+        httpOnly: true,
+        expires: new Date(0),
       })
       .send();
   }

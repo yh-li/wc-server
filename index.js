@@ -1,8 +1,8 @@
 import app from "./server.js";
 import mongodb from "mongodb";
 import dotenv from "dotenv";
-import CoursesDAO from "./dao/coursesDAO.js";
-import ReviewsDAO from "./dao/reviewsDAO.js";
+//import CoursesDAO from "./dao/coursesDAO.js";
+//import ReviewsDAO from "./dao/reviewsDAO.js";
 import mongoose from "mongoose";
 dotenv.config();
 const MongoClient = mongodb.MongoClient;
@@ -22,8 +22,8 @@ mongoose
     //right after we have connected to the database
     //and before we start the server
     //client is a connection
-    await CoursesDAO.injectDB(client);
-    await ReviewsDAO.injectDB(client);
+    //await CoursesDAO.injectDB(client);
+    //await ReviewsDAO.injectDB(client);
     //this is where we start the server
     //this is after we connected to the database
     app.listen(port, () => {
